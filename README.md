@@ -1,5 +1,5 @@
 # Parallel-OM
-This code is for the paper "New Parallel Order Maintenance Data Structure. The experiments test thre oder operations, including Insert, Remove, and Order. 
+This code is for the paper "New Parallel Order Maintenance Data Structure. The experiments test three order operations, including Insert, Remove, and Order. 
 
 # The Structure of the Folder
 1. `~/order-maint/ours-csr-new` includes the source code. 
@@ -11,16 +11,16 @@ This code is for the paper "New Parallel Order Maintenance Data Structure. The e
 3. `~/experiment/ `: includes all the experiment scripts. 
 * **OM-Test.sh**: the shell script that can run the experiment and get the test result as csv files.
 * **OM-Test-2.sh**: the shell script that can run the experiment (to test the scalability) and get the test result as csv files.
-* **paser-output.py**: the python script called by benchmark.sh to parse the test result.
+* **paser-output.py**: the python script called by `OM-test.sh`  or `OM-Test-2.sh` to parse the test result.
 * **results**: this folder contains all the tested results. 
-* **convert**: this folder contains all the python script that transfer the test results to the figures and table that can be included in the paper.
+* **convert**: this folder contains all the python scripts that transfer the test results to the figures and table that can be included in the paper.
 
 
 # Compile and Run
 
 Goto `order-maint/`  
-Compile with the `Make` command.   
-Run `./core`  
+Compile with the `make` command.   
+Run by `./core`  
 
 You will see the help message for the cmd line to run this.  
 `-I`: the size of the ordered list and inserted items    
@@ -30,7 +30,9 @@ You will see the help message for the cmd line to run this.
 
 for example: `./core -I 10000000 -w 16 -l 0 -t 20`
 
-This means there the inital odered list has 10 million items; also, there are 10 million items to be inserted. There are totally 16 workers. The CAS lock is used. The No case is adot for the test. 
+The example means that the initial ordered list has 10 million items; also, there are 10 million items to be inserted. 
+There are  16 workers run in parallel. 
+The CAS lock is used. The No case is adopted for the test. 
 
 In this paper, there are four test cases: 
 - No case: we have 10 million positions, the total number
@@ -49,14 +51,14 @@ Relabel procedures are triggered when inserting.
 of O) to insert 10, 000, 000 items. In this way, we obtain a
 maximum number of triggered relabel procedures.
  
-The above is to test the paralle version of the OM data structure. To test the sequential version of OM data structure, we use the cmd line like: 
+The above is to test the parallel version of the OM data structure. To test the sequential version of OM data structure, we use the cmd line like: 
 
 `./core -I 10000000 -w 0 -l 2 -t 20`
 
-Here, `-w 0` means sequential running and `-l 2` means not using lock for sychronization. 
+Here, `-w 0` means sequential running, and `-l 2` means not using lock for synchronization. 
 
 # Executing with Script
-1. To test the paralle running time by varing the number of workers, the experiments can run with the script `~/experiments/OM-Test.sh`.
-2. To test the scalability by varing the size of the ordered list, the experiments can run with the script `~/experiments/OM-Test-2.sh`.  
+1. To test the parallel running time by varying the number of workers, the experiments can run with the script `~/experiments/OM-Test.sh`.
+2. To test the scalability by varying the size of the ordered list, the experiments can run with the script `~/experiments/OM-Test-2.sh`.  
 
  
