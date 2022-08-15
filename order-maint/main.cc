@@ -42,16 +42,16 @@ int main(int argc, char** argv) {
     int optRemoveNum = 0;
     int temp = 2;   // temporal graph 
     float edgePercent = 100;
-    int optTest = 0;
+    int optTest = 20;
     int optWorkerNum = 0;
 
     if(argc < 2) {
 
         printf("************ OM data structure**************\n");
-        printf("-I: the total number nodes for the ordered list\n");
-        printf("-w: the number of workers (1 - 64)\n");
+        printf("-I: the size of the ordered list and inserted items\n");
+        printf("-w: the number of workers (0 - 64)\n");
         printf("-l: the type of lock, 0 CAS_LOCK (default), 1 OMP_LOCK, 2 NO lock\n");
-        printf("-t: 20 No relabel, 21 Few relabel, 22 Many relabel, 23 Max relabel\n"); 
+        printf("-t: 20 No relabel(default), 21 Few relabel, 22 Many relabel, 23 Max relabel\n"); 
         //printf("for example: ./core -I 10000000 -t 20 -w 16\n");
         exit(0);
 
