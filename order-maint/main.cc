@@ -40,23 +40,19 @@ int main(int argc, char** argv) {
     double ratio = 0.0;  // ratio of edges to insert
     int optInsertNum = 0;
     int optRemoveNum = 0;
-    int temp = 0;   // temporal graph 
+    int temp = 2;   // temporal graph 
     float edgePercent = 100;
     int optTest = 0;
     int optWorkerNum = 0;
 
     if(argc < 2) {
 
-        printf("*************Test Order Maint (OM data structure)**************\n");
-        printf("-p: the path of the random number file\n");
-        printf("-I: the number nodes for operation\n");
+        printf("************ OM data structure**************\n");
+        printf("-I: the total number nodes for the ordered list\n");
         printf("-w: the number of workers (1 - 64)\n");
-        printf("-l: the type of lock, 0 CAS_LOCK, 1 OMP_LOCK(default), 2 NO lock\n");
-        printf("-d: set debug.\n");
-        printf("-t:  1 test,20 (no relable) 21 test OM REPEAT_RANDOM (few), 22 FIXED_MULTIPLE (many), 23 FIXED_ONE (max)\n"); 
-        printf("-T: 1 repeated random positions, 2 on-the-fly random position.\n");
-        printf("-s: 1 sorted postion, 0 unsorted position (default).\n ");
-        printf("for example: ./core2 -p path -I 10000000 -T 1 -t 20 -w 16\n");
+        printf("-l: the type of lock, 0 CAS_LOCK (default), 1 OMP_LOCK, 2 NO lock\n");
+        printf("-t: 20 No relabel, 21 Few relabel, 22 Many relabel, 23 Max relabel\n"); 
+        //printf("for example: ./core -I 10000000 -t 20 -w 16\n");
         exit(0);
 
     }
