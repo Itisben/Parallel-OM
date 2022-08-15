@@ -7,13 +7,8 @@
 #include <map>
 #include <algorithm>
 
-#include "core.h"
+
 #include "defs.h"
-#include "gadget/gadget.h"
-#include "glist/glist.h"
-#include "traversal/traversal.h"
-#include "ours-csr-new/seq-csr-new.h"
-#include "ours-csr-new/par-csr-new.h"
 #include "ours-csr-new/par-om.h"
 
 /*counting*/

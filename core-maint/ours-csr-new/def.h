@@ -1,6 +1,4 @@
 #pragma once
-#include <gm.h>
-#include <omp.h>
 #include <vector>
 #include <set>
 #include <queue>

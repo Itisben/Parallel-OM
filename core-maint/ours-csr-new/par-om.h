@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "def.h"
-
+#include "omp.h"
 
 namespace ParOM {
     /*test cases*/

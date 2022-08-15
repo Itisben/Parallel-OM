@@ -5,7 +5,6 @@
  * **********************************/
 #include "def.h"
 #include "par-om.h"
-#include "../gadget/gadget.h"
 #include <string>
 #include <stack>
 #include <stdlib.h>
@@ -243,9 +242,10 @@ void ParOM::OM::InitParallel(int num_worker) {
         pthread_setaffinity_np(thread, sizeof(CPU), &CPU);
     }
     if (num_worker > 0 && num_worker < 256) {
-        gm_rt_set_num_threads(num_worker); // gm_runtime.h
+        //gm_rt_set_num_threads(num_worker); // gm_runtime.h
+        omp_set_num_threads(num_worker);
         printf("***parallel!\n");
-        printf("set number of worker: %d\n", gm_rt_get_num_threads());
+        printf("set number of worker: %d\n", omp_get_thread_num());
     } else {
         printf("***parallel! set number of worker error!!!\n");
         printf("set number of worker: -1\n");
@@ -640,13 +640,13 @@ bool ParOM::OM::DeleteByFlag(node_t x) {
 
 /***********************Test************************/
 vector<int> ParOM::OM::GetRepeatRandomNum(char * const path) {
-    size_t found;
-    string str(path);
-    found=str.find_last_of("/\\");
-    str=str.substr(0,found); //folder str.substr(found+1) file
-    str+="/random-1m.txt";
-    std::vector<int> rand = gadget::RepeateRandomRead(str.c_str());
-    return rand;
+    // size_t found;
+    // string str(path);
+    // found=str.find_last_of("/\\");
+    // str=str.substr(0,found); //folder str.substr(found+1) file
+    // str+="/random-1m.txt";
+    // std::vector<int> rand = gadget::RepeateRandomRead(str.c_str());
+    // return rand;
 }
 
 vector<int> ParOM::OM::GenerateTestCase(TestCase t, vector<int> &randnum, size_t insertNum) {
