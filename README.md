@@ -1,5 +1,5 @@
 # Parallel-OM
-This code is for the paper "New Parallel Order Maintenance Data Structure. The experiments test three order operations, including Insert, Remove, and Order. 
+This code is for the paper "New Parallel Order Maintenance Data Structure". The experiments test three order operations, including Insert, Remove, and Order. 
 
 # The Structure of the Folder
 1. `~/order-maint/ours-csr-new` includes the source code. 
