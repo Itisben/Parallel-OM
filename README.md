@@ -14,7 +14,8 @@ This code is for the paper "New Parallel Order Maintenance Data Structure. The e
 * **paser-output.py**: the python script called by `OM-test.sh`  or `OM-Test-2.sh` to parse the test result.
 * **results**: this folder contains all the tested results. 
 * **convert**: this folder contains all the python scripts that transfer the test results to the figures and table that can be included in the paper.
-
+4. `~/experiment/result`: include all experiment result data.   
+5. `~/experiment/convert`: include the jupyter-lab files that can generate figures from the test results. 
 
 # Compile and Run
 
@@ -60,5 +61,6 @@ Here, `-w 0` means sequential running, and `-l 2` means not using lock for synch
 # Executing with Script
 1. To test the parallel running time by varying the number of workers, the experiments can run with the script `~/experiments/OM-Test.sh`.
 2. To test the scalability by varying the size of the ordered list, the experiments can run with the script `~/experiments/OM-Test-2.sh`.  
+3. We can generate figures by running Python code in jupyter-lab files in `~/experiment/convert/`.
 
  
