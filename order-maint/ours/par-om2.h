@@ -3,7 +3,7 @@
 #include "def.h"
 #include "omp.h"
 
-namespace ParOM {
+namespace ParOM2 {
     /*test cases*/
     enum TestCase{
         NO_RELABEL,
@@ -92,6 +92,16 @@ namespace ParOM {
         // lock when alocate group in relabel process
         omp_lock_t omlock_omp; 
         lock_t omlock_cas;
+        
+        // a global lock to protect relabel. Therefore, a 
+        // relabel cannot be concurrent with any insert or order operations. 
+        // 0 unlock, 1 when locking, the counter is decreasing, 2 when counter = 0 locked. 
+        const int GLOBAL_UNLOCK = 0;
+        const int GLOBAL_LOCKED = 1;  
+        unsigned int global_relabel_lock = 0; 
+
+        // global conter
+        //int global_counter 
 
         Count g_cnt; // global counter
 
@@ -117,11 +127,17 @@ namespace ParOM {
 
 
         /*OM operations*/
-        inline bool Order(node_t x, node_t y, ParOM::Count &cnt); // return x < y
+        inline bool Order(node_t x, node_t y, ParOM2::Count &cnt); // return x < y
+        inline bool SeqOrder(node_t x, node_t y);
+
         void Insert(node_t x, node_t y, vector<node_t> &relabel_nodes, 
-                vector<group_t> &groups, ParOM::Count &cnt); // insert y after x
-        void SimpleRelabel2(node_t x, node_t xnext, group_t gy, 
-                vector<node_t> &relabel_nodes,vector<group_t> &groups, ParOM::Count &cnt);
+                vector<group_t> &groups, ParOM2::Count &cnt); // insert y after x
+        //compared method, stop whole world for 
+        void Insert2(node_t x, node_t y, vector<node_t> &relabel_nodes, 
+                vector<group_t> &groups, ParOM2::Count &cnt); // insert y after x
+
+        void SimpleRelabel(node_t x, node_t xnext, group_t gy, 
+                vector<node_t> &relabel_nodes,vector<group_t> &groups, ParOM2::Count &cnt);
         inline bool Delete(node_t x);   // remove x
         inline bool DeleteByFlag(node_t x);
     

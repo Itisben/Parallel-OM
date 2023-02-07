@@ -1,0 +1,6 @@
+make --dry-run --keep-going --print-directory
+make: Entering directory '/home/guob15/github-code/Parallel-OM'
+make: Leaving directory '/home/guob15/github-code/Parallel-OM'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+

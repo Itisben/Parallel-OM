@@ -19,19 +19,22 @@ debug: CC+= -ggdb
 core: CC+= -O3
 
 
-core: main.o om.o 
-	$(CC) $(CFLAGS2) main.o om.o -o core
+core: main.o om.o om2.o
+	$(CC) $(CFLAGS2) main.o om.o om2.o -o core
 
-debug: main.o om.o
-	$(CC) $(CFLAGS2) main.o om.o -o debug
+debug: main.o om.o om2.o
+	$(CC) $(CFLAGS2) main.o om.o om2.o -o debug
 
 
 main.o: main.cc
 	$(CC) $(CFLAGS) main.cc -o main.o
 
 
-om.o: ours-csr-new/par-om.cpp
-	$(CC) $(CFLAGS) ours-csr-new/par-om.cpp -o om.o
+om.o: ours/par-om.cpp
+	$(CC) $(CFLAGS) ours/par-om.cpp -o om.o
+
+om2.o: ours/par-om2.cpp
+	$(CC) $(CFLAGS) ours/par-om2.cpp -o om2.o
 
 clean: 
 	rm -f ./*.o

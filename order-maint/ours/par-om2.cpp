@@ -4,7 +4,7 @@
  * this is one part of work for our parallel Core Maint.
  * **********************************/
 #include "def.h"
-#include "par-om.h"
+#include "par-om2.h"
 #include <string>
 #include <stack>
 #include <stdlib.h>
@@ -39,14 +39,14 @@ void __attribute__((optimize("O0")))  power_busy_wait(int &i) { //__attribute__(
 }
 #pragma GCC pop_options
 #else 
-void power_busy_wait(int &i) { //__attribute__((optimize("O0")))
+static void power_busy_wait(int &i) { //__attribute__((optimize("O0")))
         int j = i; while (j>0) --j;
         i *= 2;
 }
 #endif
 
 /********************NODE****************************/
-ParOM::Node::Node(){
+ParOM2::Node::Node(){
     subtag = 0; // init to 0 
     pre = next = NONE;
     live = true; // node exist
@@ -57,13 +57,13 @@ ParOM::Node::Node(){
     }
 }
 
-ParOM::Node::~Node(){
+ParOM2::Node::~Node(){
     if (OMP_LOCK == g_lock_type){
         omp_destroy_lock(&omlock_omp);
     }
 }
 
-void ParOM::Node::OMLock() {
+void ParOM2::Node::OMLock() {
     if (CAS_LOCK == g_lock_type) {
         int i = BUSYWAIT_I;
         while (true) {
@@ -80,7 +80,7 @@ void ParOM::Node::OMLock() {
 }
 
 
-void ParOM::Node::OMUnlock () {
+void ParOM2::Node::OMUnlock () {
     if (CAS_LOCK == g_lock_type) {
         atomic_write(&omlock_cas, UNLOCK);
     } else if (OMP_LOCK == g_lock_type){
@@ -88,7 +88,7 @@ void ParOM::Node::OMUnlock () {
     }
 }
 
-int ParOM::Node::OMTestLock() {
+int ParOM2::Node::OMTestLock() {
     if (OMP_LOCK == g_lock_type) {
         return omp_test_lock(&omlock_omp);
     }
@@ -97,7 +97,7 @@ int ParOM::Node::OMTestLock() {
 /************************NODE END*********************/
 
 /***********************Group BEGIN*******************/
-ParOM::Group::Group() {
+ParOM2::Group::Group() {
     size = 0; pre = next = NONE; tag = 0;
     if (CAS_LOCK == g_lock_type) {
         omlock_cas = 0; //unlock
@@ -106,13 +106,13 @@ ParOM::Group::Group() {
     }
 }
 
-ParOM::Group::~Group() {
+ParOM2::Group::~Group() {
     if (OMP_LOCK == g_lock_type){ //omp lock
         omp_destroy_lock(&omlock_omp);
     }
 }
 
-void ParOM::Group::OMLock() {
+void ParOM2::Group::OMLock() {
     if (CAS_LOCK == g_lock_type) {
         while (true) {
             int i = BUSYWAIT_I;
@@ -128,7 +128,7 @@ void ParOM::Group::OMLock() {
     }
 }
 
-void ParOM::Group::OMUnlock() {
+void ParOM2::Group::OMUnlock() {
     if (CAS_LOCK == g_lock_type) {
         atomic_write(&omlock_cas, UNLOCK);
     } else if (OMP_LOCK == g_lock_type){ //omp lock
@@ -136,7 +136,7 @@ void ParOM::Group::OMUnlock() {
     }
 }
 
-int ParOM::Group::OMTestLock() {
+int ParOM2::Group::OMTestLock() {
     if (OMP_LOCK == g_lock_type) {
         return omp_test_lock(&omlock_omp);
     }
@@ -147,7 +147,7 @@ int ParOM::Group::OMTestLock() {
 /***********************Group END*****************/
 
 /***********************OM begin******************/
-ParOM::OM::OM(size_t max_size):max_size{max_size}{
+ParOM2::OM::OM(size_t max_size):max_size{max_size}{
     Node node; 
     V = vector<Node>(max_size + 2, node); // Vertices
 
@@ -181,13 +181,13 @@ ParOM::OM::OM(size_t max_size):max_size{max_size}{
     }
 }
 
-ParOM::OM::~OM() {
+ParOM2::OM::~OM() {
     if (OMP_LOCK == g_lock_type) {
         omp_destroy_lock(&omlock_omp);
     }
 }
 
-void ParOM::OM::Init(vector<node_t> &nodes) {
+void ParOM2::OM::Init(vector<node_t> &nodes) {
     for (node_t v: nodes) {  
         // insert to boTgom list after tail.pre p.
         {  
@@ -224,7 +224,7 @@ void ParOM::OM::Init(vector<node_t> &nodes) {
     group_size = nodes.size();
 }
 
-void ParOM::OM::InitParallel(int num_worker) {
+void ParOM2::OM::InitParallel(int num_worker) {
     if (num_worker < 1) {
         printf("***sequential!\n");
         printf("set number of worker: 0\n");
@@ -252,7 +252,7 @@ void ParOM::OM::InitParallel(int num_worker) {
     }
 }
 
-void ParOM::OM::Lock() {
+void ParOM2::OM::Lock() {
     if (CAS_LOCK == g_lock_type) {
         while (true) {
             if (atomic_read(&omlock_cas) == UNLOCK) {
@@ -267,7 +267,7 @@ void ParOM::OM::Lock() {
 }
 
 
-void ParOM::OM::Unlock() {
+void ParOM2::OM::Unlock() {
     if (CAS_LOCK == g_lock_type) {
         atomic_write(&omlock_cas, UNLOCK);
     } else if (OMP_LOCK == g_lock_type){
@@ -275,14 +275,14 @@ void ParOM::OM::Unlock() {
     }
 }
 
-inline void ParOM::OM::ListDelete(node_t x) {
+inline void ParOM2::OM::ListDelete(node_t x) {
     node_t pre = V[x].pre; node_t next = V[x].next;
     V[pre].next = next; V[next].pre = pre;
     V[x].pre = V[x].next = NONE;
 }
 
 /*insert y after x in list*/
-inline void ParOM::OM::ListInsert(node_t x, node_t y) {
+inline void ParOM2::OM::ListInsert(node_t x, node_t y) {
     node_t next = V[x].next;
     V[x].next = y; V[y].pre = x;
     V[y].next = next; V[next].pre = y;
@@ -291,7 +291,7 @@ inline void ParOM::OM::ListInsert(node_t x, node_t y) {
 
 
 /*insert all y after x in list*/
-inline void ParOM::OM::MultiListInsert(node_t x, vector<node_t> &y) {
+inline void ParOM2::OM::MultiListInsert(node_t x, vector<node_t> &y) {
     // link all y , scan 0 to size-2
     size_t size = y.size();
     if (1 == size) return ListInsert(x, y[0]);
@@ -306,21 +306,21 @@ inline void ParOM::OM::MultiListInsert(node_t x, vector<node_t> &y) {
     V[y[size-1]].next = next; V[next].pre = y[size-1];
 }
 
-inline void ParOM::OM::TopListDelete(group_t x) {
+inline void ParOM2::OM::TopListDelete(group_t x) {
     group_t pre = G[x].pre; group_t next = G[x].next;
     G[pre].next = next; G[next].pre = pre;
     //G[x].pre = G[x].next = NONE;
     G[x].pre = G[x].next = -11;  //for debug
 }
 
-inline void ParOM::OM::TopListInsert(group_t x, group_t y) {
+inline void ParOM2::OM::TopListInsert(group_t x, group_t y) {
     group_t next = G[x].next;
     G[x].next = y; G[y].pre = x;
     G[y].next = next; G[next].pre = y;
 }
 
 /*insert all y after x in list*/
-inline void ParOM::OM::MultiTopListInsert(node_t x, vector<group_t> &y) {
+inline void ParOM2::OM::MultiTopListInsert(node_t x, vector<group_t> &y) {
     // link all y , scan 0 to size-2
     size_t size = y.size();
     if (1 == size) return TopListInsert(x, y[0]);
@@ -340,38 +340,55 @@ inline void ParOM::OM::MultiTopListInsert(node_t x, vector<group_t> &y) {
 * 2 the tag and subtag may be changed during comparation,
 *   which is not allowed. 
 * 3 If values change, redo Order*/
-inline bool ParOM::OM::Order(node_t x, node_t y, ParOM::Count &cnt) {
-    //++cnt_omorder;
-AGAIN:
+inline bool ParOM2::OM::Order(node_t x, node_t y, ParOM2::Count &cnt) {
+    int i = BUSYWAIT_I;
+AGAIN: 
+    if (GLOBAL_UNLOCK != atomic_read(&global_relabel_lock)) {
+        power_busy_wait(i);
+        goto AGAIN;
+    }
+    //atomic_add(&global_relable_counter, 1);
+
     bool r;
-    if (EMPTY == V[x].next || EMPTY == V[y].next) return false;
     tag_t xtag = G[V[x].group].tag; tag_t ytag = G[V[y].group].tag;
     if (xtag != ytag) {
-        r =  (xtag < ytag); 
-        // in case the relabel happen, the tag is changed by other workers.
-        if (xtag != G[V[x].group].tag || ytag != G[V[y].group].tag) {
-            ++cnt.order_repeat;
-            goto AGAIN;
-        }
-        else { goto END; }
+        r =  (xtag < ytag);
     } else { //gx == gy
         subtag_t xsub = V[x].subtag; subtag_t ysub = V[y].subtag;  
-        r = (xsub < ysub);
-        if (xtag != G[V[x].group].tag || ytag != G[V[y].group].tag
-                || xsub != V[x].subtag || ysub != V[y].subtag) {
-            ++cnt.order_repeat;
-            goto AGAIN;
-        }
-        else { goto END; }
-        
+        r = V[x].subtag < V[y].subtag;
     }
+
+    //atomic_sub(&global_relable_counter, 1);
+
 END: 
     return r;
 }
 
+/**the sequential order operation for testing**/
+inline bool ParOM2::OM::SeqOrder(node_t x, node_t y) {
 
-void ParOM::OM::Insert(node_t x, node_t y, vector<node_t> &relabel_nodes,
-            vector<group_t> &groups, ParOM::Count &cnt) {
+    bool r;
+    tag_t xtag = G[V[x].group].tag; tag_t ytag = G[V[y].group].tag;
+    if (xtag != ytag) {
+        r =  (xtag < ytag);
+    } else { //gx == gy
+        subtag_t xsub = V[x].subtag; subtag_t ysub = V[y].subtag;  
+        r = V[x].subtag < V[y].subtag;
+    }
+    return r;
+}
+
+void ParOM2::OM::Insert(node_t x, node_t y, vector<node_t> &relabel_nodes,
+            vector<group_t> &groups, ParOM2::Count &cnt) {
+    
+    int i = BUSYWAIT_I;
+WAIT: 
+    if (GLOBAL_UNLOCK != atomic_read(&global_relabel_lock)) {
+        power_busy_wait(i);
+        goto WAIT;
+    }
+    //atomic_add(&global_relable_counter, 1);
+
 
     ++cnt_ominsert;
 
@@ -412,7 +429,7 @@ AGAIN:
         // we use global version to STM for PQ. 
         //++g_tag_version[core[x]]; // doing relabel, odd number, "lock" order list
         relabel_nodes.clear(); groups.clear();
-        SimpleRelabel2(x, xnext, g0, relabel_nodes, groups, cnt);
+        SimpleRelabel(x, xnext, g0, relabel_nodes, groups, cnt);
         ++cnt.relabel;
         //SimpleRelabel(x);
         //++g_tag_version[core[x]]; // finish, even number, "unlock" order list
@@ -428,14 +445,25 @@ AGAIN:
 
     //V[y].OMUnlock(); 
     V[x].OMUnlock(); V[xnext].OMUnlock(); 
+
+    //atomic_sub(&global_relable_counter, 1);
 }
 
 /*split g0 to miltiple groups
 * x: insert y between x and x.next.
 * gy: y's group
 * relabel_nodes: vector alocate outside*/
-void ParOM::OM::SimpleRelabel2(node_t x, node_t xnext, group_t gy, 
-            vector<node_t> &relabel_nodes, vector<group_t> &groups, ParOM::Count &cnt) {
+void ParOM2::OM::SimpleRelabel(node_t x, node_t xnext, group_t gy, 
+            vector<node_t> &relabel_nodes, vector<group_t> &groups, ParOM2::Count &cnt) {
+    int i = BUSYWAIT_I;
+AGAIN:
+    if ( !(GLOBAL_UNLOCK == atomic_read(&global_relabel_lock) && 
+            cas(&global_relabel_lock, GLOBAL_UNLOCK, GLOBAL_LOCKED)) ){
+        
+        power_busy_wait(i);
+        goto AGAIN;
+    }
+    
 
     // x and x.next is locked before
     // lock g0
@@ -589,7 +617,7 @@ void ParOM::OM::SimpleRelabel2(node_t x, node_t xnext, group_t gy,
 
 /*return 0, success delete x
 * return 1, x is already deleted by other workers.*/
-bool ParOM::OM::Delete(node_t x) {
+bool ParOM2::OM::Delete(node_t x) {
     //++cnt_omdelete;
 
 DOLOCK:
@@ -629,7 +657,7 @@ DOLOCK:
 
 /*by setting flag to delete, next time to recycle. 
 * it avoid to use lock*/
-bool ParOM::OM::DeleteByFlag(node_t x) {
+bool ParOM2::OM::DeleteByFlag(node_t x) {
     return cas(&V[x].live, true, false);
     // V[x].OMLock();
     // V[x].live = false;
@@ -639,7 +667,7 @@ bool ParOM::OM::DeleteByFlag(node_t x) {
 
 
 /***********************Test************************/
-vector<int> ParOM::OM::GetRepeatRandomNum(char * const path) {
+vector<int> ParOM2::OM::GetRepeatRandomNum(char * const path) {
     // size_t found;
     // string str(path);
     // found=str.find_last_of("/\\");
@@ -649,7 +677,7 @@ vector<int> ParOM::OM::GetRepeatRandomNum(char * const path) {
     // return rand;
 }
 
-vector<int> ParOM::OM::GenerateTestCase(TestCase t, vector<int> &randnum, size_t insertNum) {
+vector<int> ParOM2::OM::GenerateTestCase(TestCase t, vector<int> &randnum, size_t insertNum) {
     vector<int> pos;
     size_t rand_size = randnum.size();
     srand (time(NULL));
@@ -718,7 +746,7 @@ vector<int> ParOM::OM::GenerateTestCase(TestCase t, vector<int> &randnum, size_t
 /* test cases with random number. 
 * for scaliable test, the radio is same for different scales. 
 **/
-vector<int> ParOM::OM::GenerateTestCase2(TestCase t, size_t insertNum) {
+vector<int> ParOM2::OM::GenerateTestCase2(TestCase t, size_t insertNum) {
     vector<int> pos;
     srand (time(NULL));
 
@@ -775,7 +803,7 @@ vector<int> ParOM::OM::GenerateTestCase2(TestCase t, size_t insertNum) {
 
     return pos;
 }
-vector<node_t> ParOM::OM::AlocateNodes(int num) {
+vector<node_t> ParOM2::OM::AlocateNodes(int num) {
     vector<node_t> nodes;
     for(size_t id = node_size; id < node_size + num; id++) {
         assert(id < max_size);
@@ -786,7 +814,7 @@ vector<node_t> ParOM::OM::AlocateNodes(int num) {
 }
 
 
-void ParOM::OM::TestInsert(vector<int> &pos, vector<int> &nodes, bool ispar) {
+void ParOM2::OM::TestInsert(vector<int> &pos, vector<int> &nodes, bool ispar) {
     const size_t size = pos.size();
     if (ispar) {    
     
@@ -795,7 +823,7 @@ void ParOM::OM::TestInsert(vector<int> &pos, vector<int> &nodes, bool ispar) {
         int workerid = omp_get_thread_num();
         vector<node_t> relabel_nodes;
         vector<group_t> groups;
-        ParOM::Count cnt;
+        ParOM2::Count cnt;
         #pragma omp critical 
         {
             relabel_nodes.reserve(1024*2);
@@ -827,7 +855,7 @@ void ParOM::OM::TestInsert(vector<int> &pos, vector<int> &nodes, bool ispar) {
 }
 
 #if 0
-void ParOM::OM::TestInsertBatch(vector<int> &pos, vector<int> &nodes, bool ispar) {
+void ParOM2::OM::TestInsertBatch(vector<int> &pos, vector<int> &nodes, bool ispar) {
     const size_t size = pos.size();
     if (ispar) {    
     
@@ -836,7 +864,7 @@ void ParOM::OM::TestInsertBatch(vector<int> &pos, vector<int> &nodes, bool ispar
         int workerid = omp_get_thread_num();
         vector<node_t> relabel_nodes;
         vector<group_t> groups;
-        ParOM::Count cnt;
+        ParOM2::Count cnt;
         #pragma omp critical 
         {
             relabel_nodes.reserve(1024*2);
@@ -869,7 +897,7 @@ void ParOM::OM::TestInsertBatch(vector<int> &pos, vector<int> &nodes, bool ispar
 #endif 
 
 
-void ParOM::OM::TestDelete(vector<int> &pos, bool ispar) {
+void ParOM2::OM::TestDelete(vector<int> &pos, bool ispar) {
     const size_t size = pos.size();
     if (ispar) {
     
@@ -891,13 +919,13 @@ void ParOM::OM::TestDelete(vector<int> &pos, bool ispar) {
     }
 }
 
-void ParOM::OM::TestOrder(vector<int> &pos, bool ispar) {
+void ParOM2::OM::TestOrder(vector<int> &pos, bool ispar) {
     const size_t size = pos.size();
     if (ispar) {
     #pragma omp parallel
     {
         int workerid = omp_get_thread_num();
-        ParOM::Count cnt;
+        ParOM2::Count cnt;
 
         #pragma omp for OMP_PARALLEL_FOR
         for (int i = 0; i < size; i++) 
@@ -919,7 +947,7 @@ void ParOM::OM::TestOrder(vector<int> &pos, bool ispar) {
     }
 }
 
-void ParOM::OM::TestMixed(vector<int> &pos, vector<int> &nodes, bool ispar) {
+void ParOM2::OM::TestMixed(vector<int> &pos, vector<int> &nodes, bool ispar) {
     const size_t size = pos.size();
 
     if (ispar) {
@@ -932,7 +960,7 @@ void ParOM::OM::TestMixed(vector<int> &pos, vector<int> &nodes, bool ispar) {
         // vector<node_t> stack_vec; // use vector as a stack.
         // int stack_pos = 0;
 
-        ParOM::Count cnt;
+        ParOM2::Count cnt;
 
         #pragma omp critical 
         {
@@ -1026,7 +1054,7 @@ void ParOM::OM::TestMixed(vector<int> &pos, vector<int> &nodes, bool ispar) {
 }
 
 
-void ParOM::OM::PrintCount(char* str) {
+void ParOM2::OM::PrintCount(char* str) {
     
     printf("\n");
     printf(str); printf("tag #: %u\n", g_cnt.tag);
